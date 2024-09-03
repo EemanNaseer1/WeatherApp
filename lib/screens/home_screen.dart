@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:weatherapp/screens/home.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,7 +10,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-   String formattedDateTime = "";
+  double? temperature;
+  String formattedDateTime = "";
   String city = "Karachi";
   String city1 = "";
   var faviourte = [];
@@ -19,7 +21,17 @@ class _HomeScreenState extends State<HomeScreen> {
  void initState() {
     super.initState();
     _updateTime();
+    _fetchTemperature();
   }
+
+Widget temperatureWidget(double? temperature) {
+  return temperature == null
+      ? CircularProgressIndicator()
+      : Text(
+          '${temperature.toStringAsFixed(1)}°C',
+          style: TextStyle(fontSize: 70,color: Colors.white,fontWeight: FontWeight.w500),
+        );
+}
 
   void _updateTime() {
     final now = DateTime.now();
@@ -27,6 +39,14 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
     Future.delayed(Duration(seconds: 1), () {
       _updateTime();
+    });
+  }
+
+  Future<void> _fetchTemperature() async {
+    final weatherService = WeatherService();
+    final temp = await weatherService.getTemperature(city: 'Karachi');
+    setState(() {
+      temperature = temp;
     });
   }
 
@@ -58,7 +78,13 @@ class _HomeScreenState extends State<HomeScreen> {
           formattedDateTime ?? '',
           style: TextStyle(fontSize: 15,color: Colors.white),
         ),
-              )
+              ),
+              Center(
+                child: Container(
+                  // color: Colors.white,
+                  margin: EdgeInsets.only(bottom: 200),
+                  child: temperatureWidget(temperature)),
+              ),
                 ]
               )),
           ],

@@ -1,55 +1,28 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+class WeatherService {
+  final String apiKey = 'b664c8234758057c521c50b9ba675041';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  Future<double?> getTemperature({required String city}) async {
+    try {
+      final url = Uri.parse(
+        'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric',
+      );
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+      final response = await http.get(url);
 
-class _HomeScreenState extends State<HomeScreen> {
-  var dataList = [];
-  var dataList1;
-  getUsers() async {
-    String baseUrl = "https://jsonplaceholder.typicode.com/";
-    String endPoint = "posts";
-    var url = Uri.parse(baseUrl + endPoint+"?ai=2");
-    // var response = await http.post(url,body :jsonEncode({}));
-   var response = await http.get(url);
-    if (response.statusCode == 200) {
-      var responsedata = jsonDecode(response.body);
-      for (var datalis in responsedata) {
-        setState(() {
-          dataList.add(datalis);
-         });
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final double temperature = json['main']['temp'];
+        return temperature;
+      } else {
+        print('Failed to load weather data: ${response.statusCode}');
+        return null;
       }
-    } else {
-      print("something went wrong");
+    } catch (e) {
+      print('An error occurred: $e');
+      return null;
     }
-    print(dataList);
-    print(response.statusCode);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: ElevatedButton(
-            onPressed: () {
-              getUsers();
-            },
-            child: Text("Get USer Data"),
-          ),
-        ),
-        body: ListView.builder(
-            itemCount: dataList.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text("${dataList[index]["name"]}"),
-              );
-            }));
   }
 }
