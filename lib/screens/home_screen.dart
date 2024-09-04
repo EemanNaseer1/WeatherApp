@@ -44,9 +44,9 @@ Widget temperatureWidget(double? temperature) {
 
   Future<void> _fetchTemperature() async {
     final weatherService = WeatherService();
-    final temp = await weatherService.getTemperature(city: 'Karachi');
+    final temp = await weatherService.getTemperature('Karachi');
     setState(() {
-      temperature = temp;
+      temperature = temp as double?;
     });
   }
 
