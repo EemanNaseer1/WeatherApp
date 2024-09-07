@@ -1,3 +1,4 @@
+import 'dart:async'; // Required for Timer
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:weatherapp/screens/home.dart';
@@ -11,84 +12,158 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   double? temperature;
+  double? feelsLike;
   String formattedDateTime = "";
   String city = "Karachi";
-  String city1 = "";
-  var faviourte = [];
-  var location = "Current Location";
+  String location = "Current Location";
 
   @override
- void initState() {
+  void initState() {
     super.initState();
     _updateTime();
-    _fetchTemperature();
+    Timer.periodic(Duration(seconds: 1), (Timer t) => _updateTime());
+    _fetchTemperature(); // Fetch temperature and feelsLike values.
   }
 
-Widget temperatureWidget(double? temperature) {
-  return temperature == null
-      ? CircularProgressIndicator()
-      : Text(
-          '${temperature.toStringAsFixed(1)}°C',
-          style: TextStyle(fontSize: 70,color: Colors.white,fontWeight: FontWeight.w500),
-        );
-}
+  // Widget to display the temperature and feels like values
+  Widget temperatureWidget(double? temperature, double? feelsLike) {
+    if (temperature == null || feelsLike == null) {
+      return Column(
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 10),
+          Text(
+            'Unable to fetch weather data',
+            style: TextStyle(color: Colors.red),
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${temperature.toStringAsFixed(1)}°C',
+            style: TextStyle(
+              fontSize: 42,
+              color: Colors.black,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          Text(
+            'Feels Like ${feelsLike.toStringAsFixed(1)}°C', // Display feels like temperature
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.black,
+              fontWeight: FontWeight.w600
+            ),
+          ),
+        ],
+      );
+    }
+  }
 
+  // Method to update the current date and time
   void _updateTime() {
     final now = DateTime.now();
-    formattedDateTime = DateFormat('EEEE,dd-MM-yyyy').format(now);
-    setState(() {});
-    Future.delayed(Duration(seconds: 1), () {
-      _updateTime();
-    });
-  }
-
-  Future<void> _fetchTemperature() async {
-    final weatherService = WeatherService();
-    final temp = await weatherService.getTemperature('Karachi');
     setState(() {
-      temperature = temp as double?;
+      formattedDateTime = DateFormat('EEEE, dd-MM-yyyy').format(now);
     });
   }
 
+  // Method to fetch the temperature and feels like values
+  Future<void> _fetchTemperature() async {
+    try {
+      final weatherService = WeatherService(); // Assuming this is your weather fetching service
+      final tempData = await weatherService.getTemperature(city); // Fetch temperature and feels like
+      setState(() {
+        temperature = tempData['temperature'] as double?;
+        feelsLike = tempData['feelsLike'] as double?;
+      });
+    } catch (e) {
+      // Handle error and set values to null
+      setState(() {
+        temperature = null;
+        feelsLike = null;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-          children: [
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              color: Colors.black,
-              child: Stack(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Stack(
                 children: [
-                 Container(
-                        margin: EdgeInsets.only(top: 50,left: 20),
-                        child: Text("$city",style: TextStyle(color:Colors.white,fontSize: 25,fontWeight: FontWeight.w800),),
+                  Image.asset("assets/images/view.png"),
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.1,
+                    left: MediaQuery.of(context).size.width * 0.3,
+                    child: Text(
+                      city,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 40,
+                        fontWeight: FontWeight.w900,
                       ),
-                  Container(
-                    margin: EdgeInsets.only(left: 20,top: 80),
-                    child: Text("$location",style: TextStyle(color:Colors.white)),
+                    ),
                   ),
-                  Container(
-                    margin: EdgeInsets.only(left: 290,top: 50),
-                    child: IconButton(onPressed: (){}, icon: Icon(Icons.settings))
-                ),
-                Container(
-                  margin: EdgeInsets.only(top: 140,left:110),
-                 child: Text(
-          formattedDateTime ?? '',
-          style: TextStyle(fontSize: 15,color: Colors.white),
-        ),
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.17,
+                    left: MediaQuery.of(context).size.width * 0.3,
+                    child: Text(
+                      location,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 50,
+                    right: 20,
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: Icon(Icons.settings, color: Colors.white),
+                    ),
+                  ),
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.25,
+                    left: MediaQuery.of(context).size.width * 0.30,
+                    child: Text(
+                      formattedDateTime,
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Container(
+                      margin: EdgeInsets.only(top: 270),
+                      child: temperatureWidget(temperature, feelsLike), // Pass both temperature and feelsLike
+                    ),
+                  ),
+                  Center(
+                    child: Container(
+                      margin: EdgeInsets.only(top: 370),
+                      child: Text("Cloudy",style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black
+                      ),),
+                    ),
+                  )
+                ],
               ),
-              Center(
-                child: Container(
-                  // color: Colors.white,
-                  margin: EdgeInsets.only(bottom: 200),
-                  child: temperatureWidget(temperature)),
-              ),
-                ]
-              )),
-          ],
+            ],
+          ),
         ),
+      ),
     );
   }
 }

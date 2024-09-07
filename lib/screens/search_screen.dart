@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:weatherapp/screens/home.dart';
+import 'package:weatherapp/screens/home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -120,14 +121,18 @@ class _SearchScreenState extends State<SearchScreen> {
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.only(left: 20, right: 20, bottom: 8),
                         suffix: IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              if (searchController.text.isNotEmpty) {
+                              _addCity(searchController.text); // Add city and fetch weather data
+                              searchController.clear(); // Clear the text field after search
+                            }
+                            },
                             padding: EdgeInsets.only(top: 20),
                             icon: Icon(Icons.add)),
                         suffixIcon: IconButton(
                           onPressed: () {
                             if (searchController.text.isNotEmpty) {
-                              _addCity(searchController.text); // Add city and fetch weather data
-                              searchController.clear(); // Clear the text field after search
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
                             }
                           },
                           icon: Icon(Icons.search),
